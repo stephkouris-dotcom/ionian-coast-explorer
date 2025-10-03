@@ -1,0 +1,28 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/api/stripe-create-account"
+  to = "/.netlify/functions/stripe-create-account"
+  status = 200
+
+[[redirects]]
+  from = "/api/stripe-account-link"
+  to = "/.netlify/functions/stripe-account-link"
+  status = 200
+
+[[redirects]]
+  from = "/api/checkout"
+  to = "/.netlify/functions/stripe-checkout"
+  status = 200
+
+[[redirects]]
+  from = "/api/supabase-health"
+  to = "/.netlify/functions/supabase-health"
+  status = 200
+
+[[redirects]]
+  from = "/api/listings-approve"
+  to = "/.netlify/functions/listings-approve"
+  status = 200

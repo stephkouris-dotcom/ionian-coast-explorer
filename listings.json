@@ -1,0 +1,38 @@
+{
+  "categories": [
+    {
+      "id": "villa-syvota-001",
+      "title": "Seaview Stone Villa",
+      "category": "Accommodation",
+      "region": "Syvota",
+      "description": "Private pool, sunset view, near hidden cove.",
+      "priceCents": 25000,
+      "priceTier": "\u20ac\u20ac\u20ac",
+      "lat": 39.401,
+      "lng": 20.24
+    },
+    {
+      "id": "dock-dine-paxi-001",
+      "title": "Dock & Dine \u2014 Paxos Taverna",
+      "category": "Food",
+      "region": "Paxi",
+      "description": "Waterfront taverna with mooring. Sea-to-table specials.",
+      "priceTier": "\u20ac\u20ac",
+      "lat": 39.206,
+      "lng": 20.187
+    }
+  ],
+  "marine": [
+    {
+      "id": "rib-rental-corfu-001",
+      "title": "RIB Rental with Skipper",
+      "category": "Boating",
+      "region": "Corfu South",
+      "description": "Day trips to coves and beaches. Fuel not included.",
+      "priceCents": 18000,
+      "priceTier": "\u20ac\u20ac",
+      "lat": 39.385,
+      "lng": 20.1
+    }
+  ]
+}
