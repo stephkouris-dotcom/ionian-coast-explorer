@@ -1,0 +1,1 @@
+{\n  "name": "ionian-coast-explorer",\n  "private": true,\n  "type": "module",\n  "dependencies": {\n    "stripe": "^16.0.0",\n    "@supabase/supabase-js": "^2.45.0"\n  }\n}
