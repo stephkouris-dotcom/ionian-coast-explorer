@@ -1,0 +1,1 @@
+# Progress checklist is inside. Next: connect Supabase (Step 7).

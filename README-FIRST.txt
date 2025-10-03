@@ -1,0 +1,1 @@
+Unzip, then drag the 'ionian-coast-explorer' folder into Netlify → Deploys → Upload deploy. Ensure env vars: STRIPE_SECRET_KEY, SITE_URL, SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE. Test /, /owners.html, /test-pay.html, /api/supabase-health.

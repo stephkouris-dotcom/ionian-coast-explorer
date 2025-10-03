@@ -1,9 +1,6 @@
 import Stripe from 'stripe'
-
 export async function handler(event) {
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method Not Allowed' }
-  }
+  if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' }
   try {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
     const data = JSON.parse(event.body || '{}')
