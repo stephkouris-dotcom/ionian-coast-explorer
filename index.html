@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ionian Coast Explorer</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+  <style>
+    body{min-height:100vh;background:#f6f7f9}
+    header{padding:1rem 0;border-bottom:1px solid #e5e8ec;background:#fff}
+    main{max-width:960px;margin:2rem auto;padding:0 1rem}
+    .grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+    .card{border:1px solid #e5e8ec;border-radius:12px;background:#fff;padding:1rem}
+    .muted{color:#6b7280}
+  </style>
+</head>
+<body>
+  <header>
+    <main style="display:flex;justify-content:space-between;align-items:center;max-width:960px">
+      <strong>Ionian Coast Explorer</strong>
+      <nav>
+        <a href="category.html">Explore</a>
+        <a href="map.html">Map</a>
+        <a href="owners.html">For Owners</a>
+        <a href="test-pay.html">Test Pay</a>
+      </nav>
+    </main>
+  </header>
+
+  <main>
+    <h1>Explore Greece’s Hidden Coastline</h1>
+    <p class="muted">Book authentic stays, boating, coastal life and cuisine across Thesprotia, Corfu South & Paxi.</p>
+
+    <div class="grid" style="margin-top:1rem">
+      <a class="card" href="category.html"><strong>Browse Categories</strong><p class="muted">Accommodation, Boating, Coastal Life, Cuisine</p></a>
+      <a class="card" href="map.html"><strong>Open the Map</strong><p class="muted">See locations across the region</p></a>
+      <a class="card" href="owners.html"><strong>List Your Business</strong><p class="muted">Start Stripe Connect onboarding</p></a>
+      <a class="card" href="test-pay.html"><strong>Try a Test Payment</strong><p class="muted">Stripe test mode (4242 4242 4242 4242)</p></a>
+    </div>
+
+    <p class="muted" style="margin-top:2rem">Tip: once this is live, we can swap in the full wireframe homepage.</p>
+  </main>
+</body>
+</html>
