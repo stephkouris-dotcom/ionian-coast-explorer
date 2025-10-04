@@ -6,39 +6,76 @@
   <title>Ionian Coast Explorer</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
   <style>
-    body{min-height:100vh;background:#f6f7f9}
-    header{padding:1rem 0;border-bottom:1px solid #e5e8ec;background:#fff}
-    main{max-width:960px;margin:2rem auto;padding:0 1rem}
-    .grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
-    .card{border:1px solid #e5e8ec;border-radius:12px;background:#fff;padding:1rem}
+    body{background:#f5f7fa;color:#333;font-family:'Inter',sans-serif}
+    header{background:#fff;border-bottom:1px solid #e5e8ec;position:sticky;top:0;z-index:50}
+    header nav a{margin-left:1rem;text-decoration:none;color:#0070f3;font-weight:500}
+    header nav a:hover{text-decoration:underline}
+    .hero{background:url('https://images.unsplash.com/photo-1597764699510-5e5cfebd3bdb?auto=format&fit=crop&w=1350&q=80') center/cover;height:55vh;color:white;display:flex;align-items:center;justify-content:center;text-align:center}
+    .hero h1{font-size:2.5rem;background:rgba(0,0,0,0.4);padding:1rem 2rem;border-radius:10px}
+    main{max-width:1000px;margin:auto;padding:2rem 1rem}
+    .grid{display:grid;gap:1.5rem;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+    .card{background:white;border:1px solid #e5e8ec;border-radius:12px;padding:1.5rem;transition:transform .2s,box-shadow .2s}
+    .card:hover{transform:translateY(-4px);box-shadow:0 4px 12px rgba(0,0,0,0.08)}
     .muted{color:#6b7280}
+    footer{text-align:center;padding:2rem 1rem;color:#6b7280}
+    .btn-primary{background:#0070f3;color:white;border:none;border-radius:6px;padding:.6rem 1.2rem;font-weight:500;cursor:pointer}
+    .btn-primary:hover{background:#005ecb}
   </style>
 </head>
 <body>
-  <header>
-    <main style="display:flex;justify-content:space-between;align-items:center;max-width:960px">
-      <strong>Ionian Coast Explorer</strong>
-      <nav>
-        <a href="category.html">Explore</a>
-        <a href="map.html">Map</a>
-        <a href="owners.html">For Owners</a>
-        <a href="test-pay.html">Test Pay</a>
-      </nav>
-    </main>
-  </header>
 
-  <main>
-    <h1>Explore Greece’s Hidden Coastline</h1>
-    <p class="muted">Book authentic stays, boating, coastal life and cuisine across Thesprotia, Corfu South & Paxi.</p>
-
-    <div class="grid" style="margin-top:1rem">
-      <a class="card" href="category.html"><strong>Browse Categories</strong><p class="muted">Accommodation, Boating, Coastal Life, Cuisine</p></a>
-      <a class="card" href="map.html"><strong>Open the Map</strong><p class="muted">See locations across the region</p></a>
-      <a class="card" href="owners.html"><strong>List Your Business</strong><p class="muted">Start Stripe Connect onboarding</p></a>
-      <a class="card" href="test-pay.html"><strong>Try a Test Payment</strong><p class="muted">Stripe test mode (4242 4242 4242 4242)</p></a>
-    </div>
-
-    <p class="muted" style="margin-top:2rem">Tip: once this is live, we can swap in the full wireframe homepage.</p>
+<header>
+  <main style="display:flex;justify-content:space-between;align-items:center;max-width:1000px">
+    <strong>Ionian Coast Explorer</strong>
+    <nav>
+      <a href="category.html">Explore</a>
+      <a href="map.html">Map</a>
+      <a href="owners.html">For Owners</a>
+      <a href="test-pay.html">Test Pay</a>
+    </nav>
   </main>
+</header>
+
+<section class="hero">
+  <h1>Discover Greece’s Hidden Coastal Treasures</h1>
+</section>
+
+<main>
+  <h2>Explore Categories</h2>
+  <p class="muted">Authentic experiences across Thesprotia, Corfu South & Paxi.</p>
+
+  <div class="grid" style="margin-top:1.5rem">
+    <div class="card">
+      <h3>Accommodation</h3>
+      <p>Stay in handpicked seaside homes and boutique lodgings.</p>
+      <a href="category.html#accommodation" class="btn-primary">Browse stays</a>
+    </div>
+    <div class="card">
+      <h3>Boating</h3>
+      <p>Rent local boats or book coastal tours from trusted hosts.</p>
+      <a href="category.html#boating" class="btn-primary">View options</a>
+    </div>
+    <div class="card">
+      <h3>Coastal Life</h3>
+      <p>Connect with artisans, fishermen and local experiences.</p>
+      <a href="category.html#coastal-life" class="btn-primary">Explore</a>
+    </div>
+    <div class="card">
+      <h3>Cuisine</h3>
+      <p>Dine like a local — from seaside tavernas to cooking workshops.</p>
+      <a href="category.html#cuisine" class="btn-primary">Taste now</a>
+    </div>
+  </div>
+
+  <h2 style="margin-top:3rem">Join as a Local Partner</h2>
+  <p class="muted">List your property, boat, or service — manage everything easily through Stripe Connect onboarding.</p>
+  <a href="owners.html" class="btn-primary">Get Started</a>
+
+</main>
+
+<footer>
+  <p>© 2025 Ionian Coast Explorer | Built with ❤️ in Greece</p>
+</footer>
+
 </body>
 </html>
