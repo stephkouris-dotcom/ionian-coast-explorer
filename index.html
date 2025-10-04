@@ -4,36 +4,75 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Ionian Coast Explorer</title>
+
+  <!-- Fonts + Pico -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+
   <style>
-    body{background:#f5f7fa;color:#333;font-family:'Inter',sans-serif}
-    header{background:#fff;border-bottom:1px solid #e5e8ec;position:sticky;top:0;z-index:50}
-    header nav a{margin-left:1rem;text-decoration:none;color:#0070f3;font-weight:500}
-    header nav a:hover{text-decoration:underline}
-    .hero{background:url('https://images.unsplash.com/photo-1597764699510-5e5cfebd3bdb?auto=format&fit=crop&w=1350&q=80') center/cover;height:55vh;color:white;display:flex;align-items:center;justify-content:center;text-align:center}
-    .hero h1{font-size:2.5rem;background:rgba(0,0,0,0.4);padding:1rem 2rem;border-radius:10px}
+    :root{
+      /* Natural Coastal — Premium */
+      --ionian-700:#004E7C; /* deep ionian blue */
+      --ionian-500:#2EAEBD; /* turquoise water */
+      --olive:#6B8E23;      /* olive accent */
+      --sand:#F4E1C1;       /* warm sand */
+      --ink:#0F1A24;        /* main text */
+      --muted:#5B6673;      /* secondary text */
+      --line:#E6ECF2;       /* borders */
+    }
+    body{background:#f7f9fb;color:var(--ink);font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    header{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50}
+    header .wrap{max-width:1000px;margin:auto;padding:.6rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+    .brand strong{font-family:'Playfair Display',serif;font-weight:700;color:var(--ionian-700);font-size:1.1rem;letter-spacing:.2px}
+    header nav a{margin-left:1rem;text-decoration:none;color:var(--ionian-500);font-weight:600}
+    header nav a:hover{color:var(--ionian-700);text-decoration:underline}
+
+    /* Hero */
+    .hero{
+      background:url('https://images.unsplash.com/photo-1597764699510-5e5cfebd3bdb?auto=format&fit=crop&w=1600&q=80') center/cover;
+      min-height:56vh; display:flex;align-items:center;justify-content:center;text-align:center;position:relative
+    }
+    .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,78,124,.30),rgba(0,78,124,.45))}
+    .hero h1{
+      position:relative;z-index:1;font-family:'Playfair Display',serif;
+      font-size:clamp(28px,4vw,42px);color:#fff;padding:1rem 1.6rem;border-radius:12px;background:rgba(0,0,0,.22)
+    }
+
     main{max-width:1000px;margin:auto;padding:2rem 1rem}
+    h2{font-family:'Playfair Display',serif;margin:.25rem 0;color:var(--ink)}
+    .muted{color:var(--muted)}
     .grid{display:grid;gap:1.5rem;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
-    .card{background:white;border:1px solid #e5e8ec;border-radius:12px;padding:1.5rem;transition:transform .2s,box-shadow .2s}
-    .card:hover{transform:translateY(-4px);box-shadow:0 4px 12px rgba(0,0,0,0.08)}
-    .muted{color:#6b7280}
-    footer{text-align:center;padding:2rem 1rem;color:#6b7280}
-    .btn-primary{background:#0070f3;color:white;border:none;border-radius:6px;padding:.6rem 1.2rem;font-weight:500;cursor:pointer}
-    .btn-primary:hover{background:#005ecb}
+    .card{background:white;border:1px solid var(--line);border-radius:14px;padding:1.3rem;transition:transform .2s,box-shadow .2s}
+    .card:hover{transform:translateY(-4px);box-shadow:0 8px 20px rgba(15,26,36,.08)}
+    .btn-primary{background:var(--ionian-500);color:#fff;border:none;border-radius:10px;padding:.65rem 1.1rem;font-weight:600}
+    .btn-primary:hover{background:var(--ionian-700)}
+    .soft-section{background:linear-gradient(180deg,#fff,#f7f2e6 40%, #fff);border:1px solid var(--line);border-radius:16px;padding:1.25rem}
+    footer{text-align:center;padding:2rem 1rem;color:var(--muted)}
+    svg{display:block}
   </style>
 </head>
 <body>
 
 <header>
-  <main style="display:flex;justify-content:space-between;align-items:center;max-width:1000px">
-    <strong>Ionian Coast Explorer</strong>
+  <div class="wrap">
+    <a class="brand" href="/">
+      <!-- Inline logo (no files needed) -->
+      <svg xmlns="http://www.w3.org/2000/svg" width="140" height="32" viewBox="0 0 320 72" fill="none" aria-label="Ionian Coast Explorer">
+        <circle cx="36" cy="36" r="28" fill="#FFFFFF" stroke="#004E7C" stroke-width="3"/>
+        <path d="M36 18 L46 36 L36 54 L26 36 Z" fill="#2EAEBD"/>
+        <path d="M16 46c8 8 16 8 24 0 8-8 16-8 24 0" stroke="#6B8E23" stroke-width="3" fill="none" stroke-linecap="round"/>
+      </svg>
+      <strong>Ionian Coast Explorer</strong>
+    </a>
     <nav>
       <a href="category.html">Explore</a>
       <a href="map.html">Map</a>
       <a href="owners.html">For Owners</a>
       <a href="test-pay.html">Test Pay</a>
     </nav>
-  </main>
+  </div>
 </header>
 
 <section class="hero">
@@ -42,9 +81,9 @@
 
 <main>
   <h2>Explore Categories</h2>
-  <p class="muted">Authentic experiences across Thesprotia, Corfu South & Paxi.</p>
+  <p class="muted">Authentic experiences across Thesprotia, Corfu South &amp; Paxi.</p>
 
-  <div class="grid" style="margin-top:1.5rem">
+  <div class="grid" style="margin-top:1.25rem">
     <div class="card">
       <h3>Accommodation</h3>
       <p>Stay in handpicked seaside homes and boutique lodgings.</p>
@@ -67,14 +106,15 @@
     </div>
   </div>
 
-  <h2 style="margin-top:3rem">Join as a Local Partner</h2>
-  <p class="muted">List your property, boat, or service — manage everything easily through Stripe Connect onboarding.</p>
-  <a href="owners.html" class="btn-primary">Get Started</a>
-
+  <div class="soft-section" style="margin-top:2rem">
+    <h2>Join as a Local Partner</h2>
+    <p class="muted">List your property, boat, or service — manage payouts via Stripe Connect. We support our community while delivering premium experiences.</p>
+    <a href="owners.html" class="btn-primary">Get Started</a>
+  </div>
 </main>
 
 <footer>
-  <p>© 2025 Ionian Coast Explorer | Built with ❤️ in Greece</p>
+  <p>© 2025 Ionian Coast Explorer — Authentic Premium Coastal</p>
 </footer>
 
 </body>
