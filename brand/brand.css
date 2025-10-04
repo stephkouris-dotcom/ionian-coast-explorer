@@ -1,0 +1,125 @@
+/* ===== Ionian Coast Explorer — Brand Tokens & Primitives ===== */
+
+/* COLORS */
+:root {
+  --ionian-900: #0A3550;
+  --ionian-700: #154B74; /* Primary */
+  --ionian-500: #1E6A9F; /* Accent */
+  --ionian-300: #7DB4D6;
+
+  --olive-800: #5D6A33;
+  --olive-600: #748B3D;  /* Secondary */
+  --olive-300: #A6BE7A;
+
+  --sand-300: #E6D5B8;
+  --shell-100: #F7F3EA;
+  --white: #FFFFFF;
+
+  --ink-900: #111418;    /* Main text */
+  --ink-700: #2C2F33;    /* Body text */
+  --ink-400: #6C7278;    /* Muted */
+
+  /* Semantic */
+  --bg: var(--shell-100);
+  --surface: var(--white);
+  --text: var(--ink-900);
+  --muted: var(--ink-400);
+  --primary: var(--ionian-700);
+  --primary-contrast: var(--white);
+  --secondary: var(--olive-600);
+  --accent: var(--ionian-500);
+  --border: #E5E7EB;
+  --ring: rgba(30, 106, 159, 0.35);
+
+  /* Typography */
+  --font-serif: "DM Serif Display", Georgia, "Times New Roman", serif;
+  --font-sans: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+
+  --fs-xxs: clamp(0.78rem, 0.72rem + 0.2vw, 0.85rem);
+  --fs-xs:  clamp(0.88rem, 0.82rem + 0.3vw, 0.98rem);
+  --fs-sm:  clamp(0.96rem, 0.90rem + 0.3vw, 1.05rem);
+  --fs-md:  clamp(1.00rem, 0.95rem + 0.4vw, 1.125rem);
+  --fs-lg:  clamp(1.20rem, 1.05rem + 0.8vw, 1.50rem);
+  --fs-xl:  clamp(1.60rem, 1.20rem + 1.5vw, 2.25rem);
+  --fs-2xl: clamp(2.00rem, 1.40rem + 2.5vw, 3.00rem);
+  --fs-3xl: clamp(2.60rem, 1.80rem + 3.2vw, 3.80rem);
+
+  --line-tight: 1.15;
+  --line-snug: 1.3;
+  --line-normal: 1.55;
+  --line-loose: 1.75;
+
+  /* Spacing, Radius, Elevation */
+  --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
+  --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px; --space-12: 48px;
+
+  --radius-sm: 8px; --radius-md: 16px; --radius-lg: 24px; --radius-xl: 32px;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 8px 24px rgba(0,0,0,0.10);
+  --shadow-lg: 0 18px 40px rgba(0,0,0,0.18);
+}
+
+/* Dark mode opt-in: add data-theme="dark" to <html> or <body> if ever needed */
+[data-theme="dark"] {
+  --bg: #0E141A;
+  --surface: #141A21;
+  --text: #E8EEF3;
+  --muted: #9AA4AE;
+  --border: #223041;
+}
+
+/* TYPOGRAPHY USAGE */
+h1, .display { font-family: var(--font-serif); font-size: var(--fs-3xl); line-height: var(--line-tight); letter-spacing: -0.01em;}
+h2 { font-family: var(--font-serif); font-size: var(--fs-2xl); line-height: var(--line-tight);}
+h3 { font-family: var(--font-serif); font-size: var(--fs-xl);  line-height: var(--line-snug);}
+body { font-family: var(--font-sans); font-size: var(--fs-md); line-height: var(--line-normal); color: var(--text); background: var(--bg); }
+.small, .meta { font-size: var(--fs-xs); color: var(--muted); }
+
+/* LINKS & BUTTONS */
+a { color: var(--accent); text-underline-offset: 2px; }
+a:hover { text-decoration: underline; }
+
+.btn {
+  display:inline-flex; align-items:center; gap:8px;
+  padding: 12px 18px; border-radius: var(--radius-md);
+  font-weight: 600; border: 1px solid transparent; cursor:pointer;
+  transition: transform .08s ease, box-shadow .2s ease, background .2s ease;
+}
+.btn:focus-visible { outline: 2px solid transparent; box-shadow: 0 0 0 4px var(--ring); }
+.btn-primary { background: var(--primary); color: var(--primary-contrast); box-shadow: var(--shadow-sm); }
+.btn-primary:hover { filter: brightness(1.05); transform: translateY(-1px); }
+.btn-secondary { background: var(--secondary); color: var(--white); }
+.btn-ghost { background: transparent; color: var(--primary); border:1px solid var(--primary); }
+
+/* SURFACES */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+  padding: var(--space-6);
+}
+
+/* LOGO SIZING */
+.logo { display:block; height:auto; }
+.logo--header { width: clamp(140px, 12vw, 220px); }
+.logo--hero { width: clamp(200px, 22vw, 360px); }
+
+/* HEADER & HERO (optional primitives) */
+.site-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+  padding: var(--space-4) var(--space-6);
+  position: sticky; top:0; z-index:50;
+}
+.main-nav a { margin-left: var(--space-4); font-weight:600; color: var(--ink-700); }
+.main-nav a:hover { color: var(--primary); }
+
+.hero {
+  display:grid; gap: var(--space-4);
+  place-items:center; text-align:center;
+  padding: clamp(48px, 8vw, 120px) var(--space-6);
+  background: radial-gradient(1200px 600px at 50% 0%, rgba(125,180,214,0.12), transparent 60%), var(--bg);
+}
+.lead { font-size: var(--fs-lg); color: var(--ink-700); }
+.cta { display:flex; gap: var(--space-4); flex-wrap: wrap; justify-content:center; }
