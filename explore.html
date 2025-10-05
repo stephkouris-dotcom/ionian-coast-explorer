@@ -5,11 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Explore • Ionian Coast Explorer</title>
 
+  <!-- Fonts (same as index) -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300..800&display=swap" rel="stylesheet">
+
   <!-- Brand & site styles -->
   <link rel="stylesheet" href="/brand/brand.css">
   <link rel="stylesheet" href="/style.css">
 
-  <!-- Icons & PWA (optional but nice) -->
+  <!-- Icons & PWA -->
   <link rel="icon" href="/assets/logo/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/logo/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
@@ -50,18 +54,15 @@
   </main>
 
   <script>
-    // 1) REPLACE these with your project values (same ones you used in owners.html)
-    const SUPABASE_URL = 'https://tromqpxzlqazzzfqejer.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRyb21xcHh6bHFhenp6ZnFlamVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkzODc5MjIsImV4cCI6MjA3NDk2MzkyMn0.LSbRypXuCtR1bwOEy9C7vdg2etYNCFsyMBWk1cg8WQo';
+    // >>> REPLACE these with your project values (same as owners.html) <<<
+    const SUPABASE_URL = 'https://YOUR-PROJECT-REF.supabase.co';
+    const SUPABASE_ANON_KEY = 'YOUR-ANON-PUBLIC-KEY';
 
-    // 2) Client
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // 3) Elements
     const listingsEl = document.getElementById('listings');
     const emptyEl = document.getElementById('empty');
 
-    // 4) Load & render listings (published only)
     async function loadListings(category = '') {
       listingsEl.innerHTML = '';
       let query = supabase
@@ -87,13 +88,17 @@
       emptyEl.style.display = 'none';
 
       for (const item of data) {
-        const card = document.createElement('article');
+        const card = document.createElement('a');
         card.className = 'card';
+        card.href = `/listing.html?id=${item.id}`;
+        card.style.textDecoration = 'none';
+        card.style.color = 'inherit';
+
         card.innerHTML = `
           ${item.image_url ? `<img src="${item.image_url}" alt="" style="width:100%;height:180px;object-fit:cover;border-radius:12px;margin-bottom:.75rem">` : ''}
           <h3>${item.title}</h3>
           <p class="small" style="margin:.25rem 0 .5rem 0">
-            ${item.category.replace('_',' ')} · ${item.region.replace('_',' ')}${item.price_from ? ` · from €${Number(item.price_from).toFixed(0)}` : ''}
+            ${item.category?.replace('_',' ') || ''} · ${item.region?.replace('_',' ') || ''}${item.price_from ? ` · from €${Number(item.price_from).toFixed(0)}` : ''}
           </p>
           <p>${(item.description || '').slice(0,140)}${(item.description && item.description.length > 140) ? '…' : ''}</p>
         `;
@@ -101,7 +106,7 @@
       }
     }
 
-    // 5) Filter buttons & deep-link via hash
+    // Filter buttons & deep-link via hash (e.g., /explore.html#boating)
     document.querySelectorAll('[data-filter]').forEach(btn => {
       btn.addEventListener('click', () => {
         const val = btn.getAttribute('data-filter');
@@ -110,7 +115,7 @@
       });
     });
 
-    // Initial load
+    // Initial load (use URL hash if present)
     const initial = location.hash ? location.hash.slice(1) : '';
     loadListings(initial);
   </script>
