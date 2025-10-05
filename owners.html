@@ -5,17 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>For Owners • Ionian Coast Explorer</title>
 
-  <!-- Brand & site styles -->
   <link rel="stylesheet" href="/brand/brand.css">
   <link rel="stylesheet" href="/style.css">
 
-  <!-- Icons & PWA -->
   <link rel="icon" href="/assets/logo/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/logo/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
   <meta name="theme-color" content="#154B74">
 
-  <!-- Supabase -->
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -36,31 +33,29 @@
 
     <!-- AUTH -->
     <section id="auth-panel" class="card" style="margin-top:1rem;">
-      <!-- Magic link (keep available; may start working later) -->
       <div id="signed-out">
         <label for="email">Email (magic link)</label>
         <input id="email" type="email" placeholder="you@example.com" autocomplete="email" />
-        <button id="send-link" class="btn btn-ghost" style="margin-top:.5rem;">Send magic link</button>
+        <button type="button" id="send-link" class="btn btn-ghost" style="margin-top:.5rem;">Send magic link</button>
         <p id="auth-msg" class="small" style="margin-top:.5rem;"></p>
 
         <hr style="margin:1rem 0;border:none;border-top:1px solid var(--border)">
 
-        <!-- Email + Password (fallback) -->
         <p class="small muted">Or sign in with email + password</p>
         <label for="pw-email">Email</label>
         <input id="pw-email" type="email" placeholder="you@example.com" autocomplete="email" />
         <label for="pw-password">Password</label>
         <input id="pw-password" type="password" placeholder="Minimum 6 characters" autocomplete="current-password" />
         <div style="display:flex; gap:.5rem; margin-top:.5rem;">
-          <button id="pw-signup" class="btn btn-ghost">Create account</button>
-          <button id="pw-login" class="btn btn-ghost">Sign in</button>
+          <button type="button" id="pw-signup" class="btn btn-ghost">Create account</button>
+          <button type="button" id="pw-login" class="btn btn-ghost">Sign in</button>
         </div>
         <p id="pw-msg" class="small" style="margin-top:.5rem;"></p>
       </div>
 
       <div id="signed-in" style="display:none">
         <p class="small">Signed in as <strong id="user-email"></strong></p>
-        <button id="sign-out" class="btn btn-ghost" style="margin-top:.5rem;">Sign out</button>
+        <button type="button" id="sign-out" class="btn btn-ghost" style="margin-top:.5rem;">Sign out</button>
       </div>
     </section>
 
@@ -114,7 +109,7 @@
             <label class="small" for="file">Upload image</label>
             <input id="file" type="file" accept="image/*" />
             <div style="display:flex; gap:.5rem; align-items:center; margin-top:.5rem;">
-              <button id="upload" class="btn btn-ghost">Upload</button>
+              <button type="button" id="upload" class="btn btn-ghost">Upload</button>
               <span id="upload-msg" class="small"></span>
             </div>
             <img id="preview" alt="" style="display:none; width:100%; max-height:240px; object-fit:cover; border-radius:12px; margin-top:.5rem;">
@@ -131,7 +126,7 @@
         <label class="small" for="published">
           <input id="published" type="checkbox" /> Published
         </label>
-        <button id="create" class="btn btn-primary">Create listing</button>
+        <button type="button" id="create" class="btn btn-primary">Create listing</button>
         <span id="create-msg" class="small"></span>
       </div>
     </section>
@@ -145,11 +140,18 @@
   </main>
 
   <script>
-    // >>> REPLACE with your project values (same as explore.html) <<<
+    // >>> Put your values here <<<
     const SUPABASE_URL = 'https://tromqpxzlqazzzfqejer.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRyb21xcHh6bHFhenp6ZnFlamVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkzODc5MjIsImV4cCI6MjA3NDk2MzkyMn0.LSbRypXuCtR1bwOEy9C7vdg2etYNCFsyMBWk1cg8WQo';
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Guard: show a clear alert if the library didn’t load
+    window.addEventListener('load', () => {
+      if (!window.supabase) {
+        alert('Supabase library failed to load. Check your internet and try hard refresh (Ctrl/Cmd+Shift+R).');
+      }
+    });
+
+    const supabase = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const els = {
       signedOut: document.getElementById('signed-out'),
@@ -164,54 +166,58 @@
       uploadBtn: document.getElementById('upload'),
       uploadMsg: document.getElementById('upload-msg'),
       preview: document.getElementById('preview'),
+      pwMsg: document.getElementById('pw-msg'),
     };
 
-    // MAGIC LINK (may start working later)
+    // MAGIC LINK (optional)
     document.getElementById('send-link').addEventListener('click', async () => {
-      const email = document.getElementById('email').value.trim();
-      if (!email) return (els.authMsg.textContent = 'Enter your email.');
-      els.authMsg.textContent = 'Sending link…';
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: window.location.origin + '/owners.html' }
-      });
-      els.authMsg.textContent = error ? ('Error: ' + error.message) : 'Check your email for the sign-in link.';
+      try {
+        const email = document.getElementById('email').value.trim();
+        if (!email) return (els.authMsg.textContent = 'Enter your email.');
+        els.authMsg.textContent = 'Sending link…';
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: { emailRedirectTo: window.location.origin + '/owners.html' }
+        });
+        els.authMsg.textContent = error ? ('Error: ' + error.message) : 'Check your email for the sign-in link.';
+      } catch (e) { alert(e.message); }
     });
 
-    // EMAIL + PASSWORD (fallback)
-    const pwMsg = document.getElementById('pw-msg');
+    // EMAIL + PASSWORD
     document.getElementById('pw-signup').addEventListener('click', async () => {
-      const email = document.getElementById('pw-email').value.trim();
-      const password = document.getElementById('pw-password').value;
-      if (!email || !password) return pwMsg.textContent = 'Enter email and password.';
-      pwMsg.textContent = 'Creating account…';
-      const { data, error } = await supabase.auth.signUp({ email, password });
-      if (error) { pwMsg.textContent = 'Error: ' + error.message; return; }
-      // If email confirmations are OFF, you’re signed in now; otherwise, ask to sign in.
-      pwMsg.textContent = (data.session ? 'Account created & signed in ✔' : 'Account created. Now click “Sign in”.');
-      init();
+      try {
+        const email = document.getElementById('pw-email').value.trim();
+        const password = document.getElementById('pw-password').value;
+        if (!email || !password) return els.pwMsg.textContent = 'Enter email and password.';
+        if (password.length < 6) return els.pwMsg.textContent = 'Password must be at least 6 characters.';
+        els.pwMsg.textContent = 'Creating account…';
+        const { data, error } = await supabase.auth.signUp({ email, password });
+        if (error) { els.pwMsg.textContent = 'Error: ' + error.message; alert(error.message); return; }
+        els.pwMsg.textContent = (data.session ? 'Account created & signed in ✔' : 'Account created. Now click “Sign in”.');
+        init();
+      } catch (e) { els.pwMsg.textContent = 'Error: ' + e.message; alert(e.message); }
     });
 
     document.getElementById('pw-login').addEventListener('click', async () => {
-      const email = document.getElementById('pw-email').value.trim();
-      const password = document.getElementById('pw-password').value;
-      if (!email || !password) return pwMsg.textContent = 'Enter email and password.';
-      pwMsg.textContent = 'Signing in…';
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) { pwMsg.textContent = 'Error: ' + error.message; return; }
-      pwMsg.textContent = 'Signed in ✔';
-      init();
+      try {
+        const email = document.getElementById('pw-email').value.trim();
+        const password = document.getElementById('pw-password').value;
+        if (!email || !password) return els.pwMsg.textContent = 'Enter email and password.';
+        els.pwMsg.textContent = 'Signing in…';
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) { els.pwMsg.textContent = 'Error: ' + error.message; alert(error.message); return; }
+        els.pwMsg.textContent = 'Signed in ✔';
+        init();
+      } catch (e) { els.pwMsg.textContent = 'Error: ' + e.message; alert(e.message); }
     });
 
-    // Sign out
     document.getElementById('sign-out').addEventListener('click', async () => {
       await supabase.auth.signOut();
       location.reload();
     });
 
-    // INIT: show panels depending on session
     async function init() {
-      const { data: { session} } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         els.signedOut.style.display = 'none';
         els.signedIn.style.display = 'block';
@@ -227,7 +233,7 @@
       }
     }
 
-    // IMAGE PREVIEW
+    // (Upload + create listing functions unchanged from earlier)
     els.file.addEventListener('change', () => {
       const f = els.file.files?.[0];
       if (!f) return;
@@ -236,7 +242,6 @@
       reader.readAsDataURL(f);
     });
 
-    // IMAGE UPLOAD to Supabase Storage (bucket: listing-images)
     els.uploadBtn.addEventListener('click', async () => {
       const f = els.file.files?.[0];
       if (!f) return (els.uploadMsg.textContent = 'Choose a file first.');
@@ -245,15 +250,13 @@
 
       els.uploadMsg.textContent = 'Uploading…';
       const path = `${session.user.id}/${Date.now()}-${f.name.replace(/\s+/g,'-')}`;
-      const { data, error } = await supabase.storage.from('listing-images').upload(path, f, { cacheControl: '3600', upsert: false });
-      if (error) { els.uploadMsg.textContent = 'Error: ' + error.message; return; }
-
+      const { error } = await supabase.storage.from('listing-images').upload(path, f, { cacheControl: '3600', upsert: false });
+      if (error) { els.uploadMsg.textContent = 'Error: ' + error.message; alert(error.message); return; }
       const { data: pub } = supabase.storage.from('listing-images').getPublicUrl(path);
       document.getElementById('image_url').value = pub.publicUrl;
       els.uploadMsg.textContent = 'Uploaded ✔';
     });
 
-    // CREATE listing (uses owner_id; falls back to owner_user_id if needed)
     document.getElementById('create').addEventListener('click', async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return alert('Please sign in first.');
@@ -274,43 +277,34 @@
 
       document.getElementById('create-msg').textContent = 'Saving…';
       let insertObj = { title, category, region, description, image_url, price_from, location: locationText, published, owner_id: session.user.id };
-
       let { error } = await supabase.from('listings').insert(insertObj);
       if (error && /owner_id/.test(error.message)) {
-        delete insertObj.owner_id;
-        insertObj.owner_user_id = session.user.id;
+        delete insertObj.owner_id; insertObj.owner_user_id = session.user.id;
         ({ error } = await supabase.from('listings').insert(insertObj));
       }
+      if (error) { document.getElementById('create-msg').textContent = 'Error: ' + error.message; alert(error.message); return; }
 
-      if (error) {
-        document.getElementById('create-msg').textContent = 'Error: ' + error.message;
-      } else {
-        document.getElementById('create-msg').textContent = 'Saved!';
-        ['title','price_from','location','image_url','description'].forEach(id => document.getElementById(id).value = '');
-        document.getElementById('category').value = '';
-        document.getElementById('region').value = '';
-        document.getElementById('published').checked = false;
-        els.preview.style.display = 'none';
-        loadMyListings(session.user);
-      }
+      document.getElementById('create-msg').textContent = 'Saved!';
+      ['title','price_from','location','image_url','description'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('category').value = '';
+      document.getElementById('region').value = '';
+      document.getElementById('published').checked = false;
+      els.preview.style.display = 'none';
+      loadMyListings(session.user);
     });
 
-    // Load current user's listings
     async function loadMyListings(user) {
       els.list.innerHTML = '';
       els.empty.style.display = 'none';
-
       let { data, error } = await supabase.from('listings')
         .select('*').eq('owner_id', user.id)
         .order('created_at', { ascending: false }).limit(50);
-
       if (error && error.message.includes('owner_id')) {
         const res = await supabase.from('listings')
           .select('*').eq('owner_user_id', user.id)
           .order('created_at', { ascending: false }).limit(50);
         data = res.data; error = res.error;
       }
-
       if (error) { els.list.innerHTML = `<div class="card">Error loading listings: ${error.message}</div>`; return; }
       if (!data || data.length === 0) { els.empty.style.display = 'block'; return; }
 
@@ -324,16 +318,15 @@
             ${item.category?.replace('_',' ') || ''} · ${item.region?.replace('_',' ') || ''} ${item.price_from ? `· €${Number(item.price_from).toFixed(0)}+` : ''}
           </p>
           <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
-            <button class="btn btn-ghost" data-action="toggle" data-id="${item.id}" data-pub="${item.published ? '1' : '0'}">
+            <button type="button" class="btn btn-ghost" data-action="toggle" data-id="${item.id}" data-pub="${item.published ? '1' : '0'}">
               ${item.published ? 'Unpublish' : 'Publish'}
             </button>
-            <button class="btn btn-ghost" data-action="delete" data-id="${item.id}">Delete</button>
+            <button type="button" class="btn btn-ghost" data-action="delete" data-id="${item.id}">Delete</button>
           </div>
         `;
         els.list.appendChild(card);
       }
 
-      // Bind actions
       els.list.querySelectorAll('button[data-action="toggle"]').forEach(btn => {
         btn.addEventListener('click', async () => {
           const id = btn.getAttribute('data-id');
@@ -355,7 +348,7 @@
       });
     }
 
-    supabase.auth.onAuthStateChange(() => { init(); });
+    supabase?.auth.onAuthStateChange(() => { init(); });
     init();
   </script>
 </body>
