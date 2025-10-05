@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Listing • Ionian Coast Explorer</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300..800&display=swap" rel="stylesheet">
+
+  <!-- Brand & site styles -->
+  <link rel="stylesheet" href="/brand/brand.css">
+  <link rel="stylesheet" href="/style.css">
+
+  <!-- Icons & PWA -->
+  <link rel="icon" href="/assets/logo/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/logo/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#154B74">
+
+  <!-- Supabase JS -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <header class="site-header">
+    <a href="/" class="brand" aria-label="Ionian Coast Explorer">
+      <img src="/assets/logo/ionian-logo-horizontal.svg" alt="Ionian Coast Explorer" class="logo logo--header">
+      <strong>Ionian Coast Explorer</strong>
+    </a>
+    <nav class="main-nav" aria-label="Primary">
+      <a href="/explore.html">Explore</a>
+      <a href="/owners.html">For Owners</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="card" style="margin-top:1rem;">
+      <a href="/explore.html" class="small" style="text-decoration:none;">← Back to Explore</a>
+      <div id="content" style="margin-top:.5rem;">
+        <p class="muted">Loading…</p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // <<< REPLACE these with your project values (same as explore/owners) >>>
+    const SUPABASE_URL = 'https://tromqpxzlqazzzfqejer.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRyb21xcHh6bHFhenp6ZnFlamVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkzODc5MjIsImV4cCI6MjA3NDk2MzkyMn0.LSbRypXuCtR1bwOEy9C7vdg2etYNCFsyMBWk1cg8WQo';
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const params = new URLSearchParams(location.search);
+    const id = params.get('id');
+    const box = document.getElementById('content');
+
+    if (!id) {
+      box.innerHTML = '<div class="card">Missing listing id. Open from Explore.</div>';
+    } else {
+      load();
+    }
+
+    async function load() {
+      const { data, error } = await supabase
+        .from('listings')
+        .select('*')
+        .eq('id', id)
+        .eq('published', true)
+        .single();
+
+      if (error || !data) {
+        box.innerHTML = '<div class="card">Listing not found or unpublished.</div>';
+        console.error(error);
+        return;
+      }
+
+      // Build the view
+      box.innerHTML = `
+        ${data.image_url ? `<img src="${data.image_url}" alt="" style="width:100%;height:320px;object-fit:cover;border-radius:16px;margin-bottom:1rem">` : ''}
+        <h2 style="margin-bottom:.25rem">${data.title}</h2>
+        <p class="small muted" style="margin:0 0 1rem 0;">
+          ${safe(data.category)} · ${safe(data.region)}${data.location ? ` · ${escapeHtml(data.location)}` : ''}${data.price_from ? ` · from €${Number(data.price_from).toFixed(0)}` : ''}
+        </p>
+        ${data.description ? `<p style="margin-bottom:1rem">${escapeHtml(data.description)}</p>` : ''}
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <a class="btn btn-primary" href="/owners.html">Request booking</a>
+          ${data.contact_email ? `<a class="btn btn-ghost" href="mailto:${escapeAttr(data.contact_email)}">Email host</a>` : ''}
+          ${data.contact_phone ? `<a class="btn btn-ghost" href="tel:${escapeAttr(data.contact_phone)}">Call host</a>` : ''}
+        </div>
+      `;
+      document.title = `${data.title} • Ionian Coast Explorer`;
+    }
+
+    // Tiny helpers to avoid weird characters breaking HTML
+    function escapeHtml(s='') {
+      return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+    function escapeAttr(s='') {
+      return String(s).replace(/"/g,'&quot;');
+    }
+    function safe(v) {
+      return (v || '').toString().replace('_',' ');
+    }
+  </script>
+</body>
+</html>
