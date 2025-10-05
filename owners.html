@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>For Owners • Ionian Coast Explorer</title>
 
+  <!-- Brand & site styles -->
   <link rel="stylesheet" href="/brand/brand.css">
   <link rel="stylesheet" href="/style.css">
 
+  <!-- Icons & PWA -->
   <link rel="icon" href="/assets/logo/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/logo/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
   <meta name="theme-color" content="#154B74">
-
- 
 </head>
 <body>
   <header class="site-header">
@@ -34,13 +34,15 @@
     <!-- AUTH -->
     <section id="auth-panel" class="card" style="margin-top:1rem;">
       <div id="signed-out">
+        <!-- Magic link (optional) -->
         <label for="email">Email (magic link)</label>
         <input id="email" type="email" placeholder="you@example.com" autocomplete="email" />
         <button type="button" id="send-link" class="btn btn-ghost" style="margin-top:.5rem;">Send magic link</button>
         <p id="auth-msg" class="small" style="margin-top:.5rem;"></p>
 
-        <hr style="margin:1rem 0;border:none;border-top:1px solid var(--border)">
+        <hr style="margin:1rem 0;border:none;border-top:1px solid var(--border, #e6ecf2)">
 
+        <!-- Email + Password -->
         <p class="small muted">Or sign in with email + password</p>
         <label for="pw-email">Email</label>
         <input id="pw-email" type="email" placeholder="you@example.com" autocomplete="email" />
@@ -103,7 +105,7 @@
         <div style="grid-column: 1 / -1;">
           <label for="image_url">Cover image URL</label>
           <input id="image_url" type="url" placeholder="https://…" />
-          <p class="small muted">You can paste a URL or upload a file below.</p>
+          <p class="small muted">Paste a URL or upload a file below.</p>
 
           <div class="card" style="padding:1rem; margin-top:.5rem;">
             <label class="small" for="file">Upload image</label>
@@ -134,24 +136,20 @@
     <!-- MY LISTINGS -->
     <section id="my-listings" style="margin-top:1rem; display:none;">
       <h3>My listings</h3>
-      <div id="list" class="grid" style="margin-top: .75rem;"></div>
+      <div id="list" class="grid" style="margin-top:.75rem;"></div>
       <p id="empty" class="muted" style="display:none;">No listings yet.</p>
     </section>
   </main>
 
-  <script>
-    // >>> Put your values here <<<
+  <!-- Supabase (module import) -->
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+    // Your Supabase project values
     const SUPABASE_URL = 'https://tromqpxzlqazzzfqejer.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRyb21xcHh6bHFhenp6ZnFlamVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkzODc5MjIsImV4cCI6MjA3NDk2MzkyMn0.LSbRypXuCtR1bwOEy9C7vdg2etYNCFsyMBWk1cg8WQo';
 
-    // Guard: show a clear alert if the library didn’t load
-    window.addEventListener('load', () => {
-      if (!window.supabase) {
-        alert('Supabase library failed to load. Check your internet and try hard refresh (Ctrl/Cmd+Shift+R).');
-      }
-    });
-
-    const supabase = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const els = {
       signedOut: document.getElementById('signed-out'),
@@ -169,49 +167,42 @@
       pwMsg: document.getElementById('pw-msg'),
     };
 
-    // MAGIC LINK (optional)
-    document.getElementById('send-link').addEventListener('click', async () => {
-      try {
-        const email = document.getElementById('email').value.trim();
-        if (!email) return (els.authMsg.textContent = 'Enter your email.');
-        els.authMsg.textContent = 'Sending link…';
-        const { error } = await supabase.auth.signInWithOtp({
-          email,
-          options: { emailRedirectTo: window.location.origin + '/owners.html' }
-        });
-        els.authMsg.textContent = error ? ('Error: ' + error.message) : 'Check your email for the sign-in link.';
-      } catch (e) { alert(e.message); }
+    // Magic link (optional)
+    document.getElementById('send-link')?.addEventListener('click', async () => {
+      const email = document.getElementById('email').value.trim();
+      if (!email) return (els.authMsg.textContent = 'Enter your email.');
+      els.authMsg.textContent = 'Sending link…';
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: window.location.origin + '/owners.html' }
+      });
+      els.authMsg.textContent = error ? ('Error: ' + error.message) : 'Check your email for the sign-in link.';
     });
 
-    // EMAIL + PASSWORD
-    document.getElementById('pw-signup').addEventListener('click', async () => {
-      try {
-        const email = document.getElementById('pw-email').value.trim();
-        const password = document.getElementById('pw-password').value;
-        if (!email || !password) return els.pwMsg.textContent = 'Enter email and password.';
-        if (password.length < 6) return els.pwMsg.textContent = 'Password must be at least 6 characters.';
-        els.pwMsg.textContent = 'Creating account…';
-        const { data, error } = await supabase.auth.signUp({ email, password });
-        if (error) { els.pwMsg.textContent = 'Error: ' + error.message; alert(error.message); return; }
-        els.pwMsg.textContent = (data.session ? 'Account created & signed in ✔' : 'Account created. Now click “Sign in”.');
-        init();
-      } catch (e) { els.pwMsg.textContent = 'Error: ' + e.message; alert(e.message); }
+    // Email + password
+    document.getElementById('pw-signup')?.addEventListener('click', async () => {
+      const email = document.getElementById('pw-email').value.trim();
+      const password = document.getElementById('pw-password').value;
+      if (!email || !password) return els.pwMsg.textContent = 'Enter email and password.';
+      els.pwMsg.textContent = 'Creating account…';
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) { els.pwMsg.textContent = 'Error: ' + error.message; return; }
+      els.pwMsg.textContent = (data.session ? 'Account created & signed in ✔' : 'Account created. Now click “Sign in”.');
+      init();
     });
 
-    document.getElementById('pw-login').addEventListener('click', async () => {
-      try {
-        const email = document.getElementById('pw-email').value.trim();
-        const password = document.getElementById('pw-password').value;
-        if (!email || !password) return els.pwMsg.textContent = 'Enter email and password.';
-        els.pwMsg.textContent = 'Signing in…';
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) { els.pwMsg.textContent = 'Error: ' + error.message; alert(error.message); return; }
-        els.pwMsg.textContent = 'Signed in ✔';
-        init();
-      } catch (e) { els.pwMsg.textContent = 'Error: ' + e.message; alert(e.message); }
+    document.getElementById('pw-login')?.addEventListener('click', async () => {
+      const email = document.getElementById('pw-email').value.trim();
+      const password = document.getElementById('pw-password').value;
+      if (!email || !password) return els.pwMsg.textContent = 'Enter email and password.';
+      els.pwMsg.textContent = 'Signing in…';
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) { els.pwMsg.textContent = 'Error: ' + error.message; return; }
+      els.pwMsg.textContent = 'Signed in ✔';
+      init();
     });
 
-    document.getElementById('sign-out').addEventListener('click', async () => {
+    document.getElementById('sign-out')?.addEventListener('click', async () => {
       await supabase.auth.signOut();
       location.reload();
     });
@@ -233,8 +224,8 @@
       }
     }
 
-    // (Upload + create listing functions unchanged from earlier)
-    els.file.addEventListener('change', () => {
+    // Image preview
+    els.file?.addEventListener('change', () => {
       const f = els.file.files?.[0];
       if (!f) return;
       const reader = new FileReader();
@@ -242,22 +233,23 @@
       reader.readAsDataURL(f);
     });
 
-    els.uploadBtn.addEventListener('click', async () => {
+    // Upload to Supabase Storage (bucket: listing-images)
+    els.uploadBtn?.addEventListener('click', async () => {
       const f = els.file.files?.[0];
       if (!f) return (els.uploadMsg.textContent = 'Choose a file first.');
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return (els.uploadMsg.textContent = 'Please sign in first.');
-
       els.uploadMsg.textContent = 'Uploading…';
       const path = `${session.user.id}/${Date.now()}-${f.name.replace(/\s+/g,'-')}`;
       const { error } = await supabase.storage.from('listing-images').upload(path, f, { cacheControl: '3600', upsert: false });
-      if (error) { els.uploadMsg.textContent = 'Error: ' + error.message; alert(error.message); return; }
+      if (error) { els.uploadMsg.textContent = 'Error: ' + error.message; return; }
       const { data: pub } = supabase.storage.from('listing-images').getPublicUrl(path);
       document.getElementById('image_url').value = pub.publicUrl;
       els.uploadMsg.textContent = 'Uploaded ✔';
     });
 
-    document.getElementById('create').addEventListener('click', async () => {
+    // Create listing (owner_id; fallback to owner_user_id)
+    document.getElementById('create')?.addEventListener('click', async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return alert('Please sign in first.');
 
@@ -277,12 +269,13 @@
 
       document.getElementById('create-msg').textContent = 'Saving…';
       let insertObj = { title, category, region, description, image_url, price_from, location: locationText, published, owner_id: session.user.id };
+
       let { error } = await supabase.from('listings').insert(insertObj);
       if (error && /owner_id/.test(error.message)) {
         delete insertObj.owner_id; insertObj.owner_user_id = session.user.id;
         ({ error } = await supabase.from('listings').insert(insertObj));
       }
-      if (error) { document.getElementById('create-msg').textContent = 'Error: ' + error.message; alert(error.message); return; }
+      if (error) { document.getElementById('create-msg').textContent = 'Error: ' + error.message; return; }
 
       document.getElementById('create-msg').textContent = 'Saved!';
       ['title','price_from','location','image_url','description'].forEach(id => document.getElementById(id).value = '');
@@ -293,18 +286,21 @@
       loadMyListings(session.user);
     });
 
+    // Load current user's listings
     async function loadMyListings(user) {
       els.list.innerHTML = '';
       els.empty.style.display = 'none';
       let { data, error } = await supabase.from('listings')
         .select('*').eq('owner_id', user.id)
         .order('created_at', { ascending: false }).limit(50);
+
       if (error && error.message.includes('owner_id')) {
         const res = await supabase.from('listings')
           .select('*').eq('owner_user_id', user.id)
           .order('created_at', { ascending: false }).limit(50);
         data = res.data; error = res.error;
       }
+
       if (error) { els.list.innerHTML = `<div class="card">Error loading listings: ${error.message}</div>`; return; }
       if (!data || data.length === 0) { els.empty.style.display = 'block'; return; }
 
@@ -327,6 +323,7 @@
         els.list.appendChild(card);
       }
 
+      // Bind actions
       els.list.querySelectorAll('button[data-action="toggle"]').forEach(btn => {
         btn.addEventListener('click', async () => {
           const id = btn.getAttribute('data-id');
@@ -348,7 +345,8 @@
       });
     }
 
-    supabase?.auth.onAuthStateChange(() => { init(); });
+    // Start
+    supabase.auth.onAuthStateChange(() => { init(); });
     init();
   </script>
 </body>
