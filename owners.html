@@ -1,1 +1,298 @@
-<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'/><meta name='viewport' content='width=device-width,initial-scale=1'/><title>For Owners — Connect Payouts</title><link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css'/><style>.wrap{max-width:700px;margin:24px auto;padding:0 16px}</style></head><body><main class='wrap'><h1>For Owners</h1><p>Connect your payout account with Stripe (test mode).</p><label>Email <input id='email' type='email' placeholder='owner@example.com' required/></label><button id='connectBtn'>Create / Continue Stripe Onboarding</button><p id='accMsg'></p><hr/><p>After onboarding, go to <a href='/test-pay.html'>Test Pay</a> to try a demo payment.</p></main><script>async function post(url,body){return fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(r=>r.json())}document.getElementById('connectBtn').addEventListener('click',async()=>{const email=document.getElementById('email').value;if(!email){alert('Enter email');return}const acc=await post('/.netlify/functions/stripe-create-account',{ email });if(!acc.accountId){document.getElementById('accMsg').textContent=acc.error||'Error';return}localStorage.setItem('connectedAccountId',acc.accountId);const link=await post('/.netlify/functions/stripe-account-link',{ accountId: acc.accountId });if(!link.url){document.getElementById('accMsg').textContent=link.error||'Error';return}location.href=link.url})</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>For Owners • Ionian Coast Explorer</title>
+
+  <!-- Brand & site styles -->
+  <link rel="stylesheet" href="/brand/brand.css">
+  <link rel="stylesheet" href="/style.css">
+
+  <!-- Icons & PWA -->
+  <link rel="icon" href="/assets/logo/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/logo/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#154B74">
+
+  <!-- Supabase -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <header class="site-header">
+    <a href="/" class="brand" aria-label="Ionian Coast Explorer">
+      <img src="/assets/logo/ionian-logo-horizontal.svg" alt="Ionian Coast Explorer" class="logo logo--header">
+      <strong>Ionian Coast Explorer</strong>
+    </a>
+    <nav class="main-nav" aria-label="Primary">
+      <a href="/explore.html">Explore</a>
+      <a href="/map.html">Map</a>
+      <a href="/owners.html" class="btn btn-primary">For Owners</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2>Owner Dashboard</h2>
+    <p class="muted">Sign in with your email to add and manage your listings.</p>
+
+    <!-- AUTH PANELS -->
+    <section id="auth-panel" class="card" style="margin-top:1rem;">
+      <div id="signed-out">
+        <label for="email">Email</label>
+        <input id="email" type="email" placeholder="you@example.com" autocomplete="email" />
+        <p class="small muted">We’ll email you a magic link to sign in.</p>
+        <button id="send-link" class="btn btn-primary" style="margin-top:.5rem;">Send magic link</button>
+        <p id="auth-msg" class="small" style="margin-top:.5rem;"></p>
+      </div>
+
+      <div id="signed-in" style="display:none">
+        <p class="small">Signed in as <strong id="user-email"></strong></p>
+        <button id="sign-out" class="btn btn-ghost" style="margin-top:.5rem;">Sign out</button>
+      </div>
+    </section>
+
+    <!-- CREATE LISTING -->
+    <section id="create-panel" class="card" style="margin-top:1rem; display:none;">
+      <h3>Create a new listing</h3>
+      <div class="grid" style="grid-template-columns: repeat(auto-fit,minmax(240px,1fr));">
+        <div>
+          <label for="title">Title</label>
+          <input id="title" type="text" placeholder="Villa Thalassa" />
+        </div>
+
+        <div>
+          <label for="category">Category</label>
+          <select id="category">
+            <option value="">Select…</option>
+            <option value="accommodation">Accommodation</option>
+            <option value="boating">Boating</option>
+            <option value="cuisine">Cuisine</option>
+            <option value="coastal_life">Coastal Life</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="region">Region</label>
+          <select id="region">
+            <option value="">Select…</option>
+            <option value="thesprotia">Thesprotia</option>
+            <option value="corfu_south">Corfu South</option>
+            <option value="paxi">Paxi</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="price_from">Price from (€)</label>
+          <input id="price_from" type="number" min="0" step="1" placeholder="180" />
+        </div>
+
+        <div>
+          <label for="location">Location</label>
+          <input id="location" type="text" placeholder="Gaios, Paxos" />
+        </div>
+
+        <div style="grid-column: 1 / -1;">
+          <label for="image_url">Cover image URL</label>
+          <input id="image_url" type="url" placeholder="https://…" />
+          <p class="small muted">Tip: use a public image URL for now. We’ll add uploads next.</p>
+        </div>
+
+        <div style="grid-column: 1 / -1;">
+          <label for="description">Description</label>
+          <textarea id="description" rows="4" placeholder="Short description…"></textarea>
+        </div>
+      </div>
+
+      <div style="margin-top:.75rem; display:flex; gap:.75rem; align-items:center;">
+        <label class="small" for="published">
+          <input id="published" type="checkbox" /> Published
+        </label>
+        <button id="create" class="btn btn-primary">Create listing</button>
+        <span id="create-msg" class="small"></span>
+      </div>
+    </section>
+
+    <!-- MY LISTINGS -->
+    <section id="my-listings" style="margin-top:1rem; display:none;">
+      <h3>My listings</h3>
+      <div id="list" class="grid" style="margin-top: .75rem;"></div>
+      <p id="empty" class="muted" style="display:none;">No listings yet.</p>
+    </section>
+  </main>
+
+  <script>
+    // 1) Replace these with your project values (same as explore.html)
+    const SUPABASE_URL = 'https://YOUR-PROJECT-REF.supabase.co';
+    const SUPABASE_ANON_KEY = 'YOUR-ANON-PUBLIC-KEY';
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const els = {
+      signedOut: document.getElementById('signed-out'),
+      signedIn: document.getElementById('signed-in'),
+      userEmail: document.getElementById('user-email'),
+      authMsg: document.getElementById('auth-msg'),
+      createPanel: document.getElementById('create-panel'),
+      myListings: document.getElementById('my-listings'),
+      list: document.getElementById('list'),
+      empty: document.getElementById('empty'),
+    };
+
+    // Auth: send magic link
+    document.getElementById('send-link').addEventListener('click', async () => {
+      const email = document.getElementById('email').value.trim();
+      if (!email) return (els.authMsg.textContent = 'Enter your email.');
+      els.authMsg.textContent = 'Sending link…';
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: window.location.origin + '/owners.html' }
+      });
+      els.authMsg.textContent = error ? ('Error: ' + error.message) : 'Check your email for the sign-in link.';
+    });
+
+    // Auth: sign out
+    document.getElementById('sign-out').addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      location.reload();
+    });
+
+    // On load: show correct panel
+    async function init() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        els.signedOut.style.display = 'none';
+        els.signedIn.style.display = 'block';
+        els.userEmail.textContent = session.user.email || session.user.id;
+        els.createPanel.style.display = 'block';
+        els.myListings.style.display = 'block';
+        loadMyListings(session.user);
+      } else {
+        els.signedOut.style.display = 'block';
+        els.signedIn.style.display = 'none';
+        els.createPanel.style.display = 'none';
+        els.myListings.style.display = 'none';
+      }
+    }
+
+    // Create listing
+    document.getElementById('create').addEventListener('click', async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return alert('Please sign in first.');
+
+      const title = document.getElementById('title').value.trim();
+      const category = document.getElementById('category').value;
+      const region = document.getElementById('region').value;
+      const price_from = document.getElementById('price_from').value ? Number(document.getElementById('price_from').value) : null;
+      const locationText = document.getElementById('location').value.trim();
+      const image_url = document.getElementById('image_url').value.trim();
+      const description = document.getElementById('description').value.trim();
+      const published = document.getElementById('published').checked;
+
+      if (!title || !category || !region) {
+        document.getElementById('create-msg').textContent = 'Title, category, and region are required.';
+        return;
+      }
+
+      document.getElementById('create-msg').textContent = 'Saving…';
+      const { error } = await supabase.from('listings').insert({
+        title, category, region, description, image_url, price_from,
+        location: locationText, published,
+        owner_id: session.user.id   // RLS policies use this
+      });
+
+      if (error) {
+        document.getElementById('create-msg').textContent = 'Error: ' + error.message;
+      } else {
+        document.getElementById('create-msg').textContent = 'Saved!';
+        // Clear fields
+        ['title','price_from','location','image_url','description'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('category').value = '';
+        document.getElementById('region').value = '';
+        document.getElementById('published').checked = false;
+        // Reload list
+        loadMyListings(session.user);
+      }
+    });
+
+    // Load current user's listings
+    async function loadMyListings(user) {
+      els.list.innerHTML = '';
+      els.empty.style.display = 'none';
+
+      let { data, error } = await supabase
+        .from('listings')
+        .select('*')
+        .eq('owner_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      // If table still uses owner_user_id (legacy), fallback:
+      if (error && error.message.includes('owner_id')) {
+        const res = await supabase
+          .from('listings')
+          .select('*')
+          .eq('owner_user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(50);
+        data = res.data; error = res.error;
+      }
+
+      if (error) {
+        els.list.innerHTML = `<div class="card">Error loading listings: ${error.message}</div>`;
+        return;
+      }
+      if (!data || data.length === 0) {
+        els.empty.style.display = 'block';
+        return;
+      }
+
+      for (const item of data) {
+        const card = document.createElement('article');
+        card.className = 'card';
+        card.innerHTML = `
+          ${item.image_url ? `<img src="${item.image_url}" alt="" style="width:100%;height:160px;object-fit:cover;border-radius:12px;margin-bottom:.5rem">` : ''}
+          <h3 style="margin-bottom:.25rem">${item.title}</h3>
+          <p class="small muted" style="margin:0 0 .5rem 0;">
+            ${item.category.replace('_',' ')} · ${item.region.replace('_',' ')} ${item.price_from ? `· €${Number(item.price_from).toFixed(0)}+` : ''}
+          </p>
+          <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+            <button class="btn btn-ghost" data-action="toggle" data-id="${item.id}" data-pub="${item.published ? '1' : '0'}">
+              ${item.published ? 'Unpublish' : 'Publish'}
+            </button>
+            <button class="btn btn-ghost" data-action="delete" data-id="${item.id}">Delete</button>
+          </div>
+        `;
+        els.list.appendChild(card);
+      }
+
+      // Bind actions
+      els.list.querySelectorAll('button[data-action="toggle"]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.getAttribute('data-id');
+          const current = btn.getAttribute('data-pub') === '1';
+          const { error } = await supabase.from('listings').update({ published: !current }).eq('id', id);
+          if (error) return alert('Error: ' + error.message);
+          loadMyListings({ id: (await supabase.auth.getUser()).data.user.id });
+        });
+      });
+
+      els.list.querySelectorAll('button[data-action="delete"]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.getAttribute('data-id');
+          if (!confirm('Delete this listing?')) return;
+          const { error } = await supabase.from('listings').delete().eq('id', id);
+          if (error) return alert('Error: ' + error.message);
+          loadMyListings({ id: (await supabase.auth.getUser()).data.user.id });
+        });
+      });
+    }
+
+    // React to auth state changes (after clicking email link)
+    supabase.auth.onAuthStateChange((_event, _session) => {
+      init();
+    });
+
+    init();
+  </script>
+</body>
+</html>
