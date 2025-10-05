@@ -18,9 +18,6 @@
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/logo/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
   <meta name="theme-color" content="#154B74">
-
-  <!-- Supabase JS -->
-  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <header class="site-header">
@@ -43,12 +40,16 @@
     </div>
   </main>
 
-  <script>
-    // <<< REPLACE these with your project values (same as explore/owners) >>>
+  <!-- Supabase (module import) -->
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+    // Your Supabase project values
     const SUPABASE_URL = 'https://tromqpxzlqazzzfqejer.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRyb21xcHh6bHFhenp6ZnFlamVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkzODc5MjIsImV4cCI6MjA3NDk2MzkyMn0.LSbRypXuCtR1bwOEy9C7vdg2etYNCFsyMBWk1cg8WQo';
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     const params = new URLSearchParams(location.search);
     const id = params.get('id');
     const box = document.getElementById('content');
@@ -73,10 +74,9 @@
         return;
       }
 
-      // Build the view
       box.innerHTML = `
         ${data.image_url ? `<img src="${data.image_url}" alt="" style="width:100%;height:320px;object-fit:cover;border-radius:16px;margin-bottom:1rem">` : ''}
-        <h2 style="margin-bottom:.25rem">${data.title}</h2>
+        <h2 style="margin-bottom:.25rem">${escapeHtml(data.title)}</h2>
         <p class="small muted" style="margin:0 0 1rem 0;">
           ${safe(data.category)} · ${safe(data.region)}${data.location ? ` · ${escapeHtml(data.location)}` : ''}${data.price_from ? ` · from €${Number(data.price_from).toFixed(0)}` : ''}
         </p>
@@ -90,7 +90,7 @@
       document.title = `${data.title} • Ionian Coast Explorer`;
     }
 
-    // Tiny helpers to avoid weird characters breaking HTML
+    // helpers
     function escapeHtml(s='') {
       return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
     }
