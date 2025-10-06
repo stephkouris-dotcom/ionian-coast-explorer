@@ -16,24 +16,19 @@
   <meta name="theme-color" content="#154B74">
 
   <style>
-    .filters {
-      display: grid; gap: .75rem; grid-template-columns: 1fr 160px 160px 120px;
-      align-items: end; margin: 1rem 0;
-    }
+    .filters { display:grid; gap:.75rem; grid-template-columns: 1fr 160px 160px 120px; align-items:end; margin:1rem 0; }
     @media (max-width: 900px){ .filters{ grid-template-columns: 1fr 1fr; } }
-    .map-and-list { display: grid; grid-template-columns: 1.2fr 1fr; gap: 1rem; }
+    .map-and-list { display:grid; grid-template-columns: 1.2fr 1fr; gap:1rem; }
     @media (max-width: 1024px){ .map-and-list{ grid-template-columns: 1fr; } }
-    #map {
-      width: 100%; height: 520px; border-radius: 16px; border: 1px solid var(--line, #e6ecf2);
-      background: #eef5fb;
-    }
-    .grid-cards { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
-    .card img { width: 100%; height: 160px; object-fit: cover; border-radius: 12px; }
-    .pill { display:inline-block; padding:.15rem .5rem; border:1px solid var(--line, #e6ecf2); border-radius:999px; font-size:.8rem; color:var(--muted,#5b6673); }
+    #map { width:100%; height:520px; border-radius:16px; border:1px solid var(--line,#e6ecf2); background:#eef5fb; }
+    .grid-cards { display:grid; gap:1rem; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+    .card img { width:100%; height:160px; object-fit:cover; border-radius:12px; }
+    .pill { display:inline-block; padding:.15rem .5rem; border:1px solid var(--line,#e6ecf2); border-radius:999px; font-size:.8rem; color:var(--muted,#5b6673); }
     .pagination { display:flex; gap:.5rem; align-items:center; justify-content:center; margin:1rem 0; }
     .btn-lite { border:1px solid var(--line,#e6ecf2); background:#fff; border-radius:10px; padding:.5rem .8rem; }
-    .muted { color: var(--muted, #5b6673); }
+    .muted { color:var(--muted,#5b6673); }
     .small { font-size:.9rem; }
+    .notice { background:#fff7d6; border:1px solid #f3e3a3; padding:.6rem .8rem; border-radius:10px; }
   </style>
 </head>
 <body>
@@ -59,7 +54,6 @@
           <label for="q">Search</label>
           <input id="q" type="search" placeholder="Try: villa, boat, taverna, Gaios…" />
         </div>
-
         <div>
           <label for="region">Region</label>
           <select id="region">
@@ -69,7 +63,6 @@
             <option value="paxi">Paxi</option>
           </select>
         </div>
-
         <div>
           <label for="category">Category</label>
           <select id="category">
@@ -80,7 +73,6 @@
             <option value="coastal_life">Coastal Life</option>
           </select>
         </div>
-
         <div>
           <label>&nbsp;</label>
           <button id="searchBtn" class="btn btn-primary" style="width:100%;">Search</button>
@@ -93,9 +85,10 @@
     <section class="map-and-list">
       <div>
         <div id="map" role="img" aria-label="Map of Ionian listings"></div>
-        <p id="mapNote" class="small muted" style="margin-top:.5rem; display:none;">
-          To enable the 3D Google map, add your API key in <code>explore.html</code>. Instructions below.
+        <p id="mapNote" class="small notice" style="margin-top:.6rem; display:none;">
+          Map is hidden. Add/fix your Google Maps API key in this file if needed.
         </p>
+        <p id="mapError" class="small notice" style="margin-top:.6rem; display:none;"></p>
       </div>
 
       <div>
@@ -112,27 +105,25 @@
     </section>
   </main>
 
-  <!-- Supabase + Google Maps -->
+  <!-- App script -->
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-    // OPTIONAL: marker clustering (loads only if Maps is available)
     let MarkerClusterer;
-    try { MarkerClusterer = (await import('https://cdn.jsdelivr.net/npm/@googlemaps/markerclusterer@2.5.3/+esm')).MarkerClusterer; } catch(e){}
+    try { MarkerClusterer = (await import('https://cdn.jsdelivr.net/npm/@googlemaps/markerclusterer@2.5.3/+esm')).MarkerClusterer; } catch (e) {}
 
-    // === Replace with your values ===
+    // === Your keys ===
     const SUPABASE_URL = 'https://tromqpxzlqazzzfqejer.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRyb21xcHh6bHFhenp6ZnFlamVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkzODc5MjIsImV4cCI6MjA3NDk2MzkyMn0.LSbRypXuCtR1bwOEy9C7vdg2etYNCFsyMBWk1cg8WQo';
 
-    // Add your Google Maps key to enable the map
+    /*  🔑 PASTE YOUR GOOGLE MAPS KEY BELOW (keep quotes)
+        example: const GOOGLE_MAPS_API_KEY = 'AIza...';
+    */
     const GOOGLE_MAPS_API_KEY = 'AIzaSyD3RIqH2w3o0KEBAgnL76HYD9eT-5llFLk';
-    // Optional: a Vector Map ID you created in Google Cloud (enables custom style + best 3D tilt)
-    const GOOGLE_MAP_ID = ''; // e.g. 'abcd1234fghijk'
-
+    const GOOGLE_MAP_ID = ''; // optional vector map style id
     const PAGE_SIZE = 12;
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // UI
     const els = {
       q: document.getElementById('q'),
       region: document.getElementById('region'),
@@ -145,34 +136,29 @@
       pageInfo: document.getElementById('pageInfo'),
       resultSummary: document.getElementById('resultSummary'),
       map: document.getElementById('map'),
-      mapNote: document.getElementById('mapNote')
+      mapNote: document.getElementById('mapNote'),
+      mapError: document.getElementById('mapError'),
     };
 
-    // Region fallback centers (if a listing has no lat/lng yet)
     const REGION_CENTERS = {
       thesprotia: { lat: 39.503, lng: 20.265 },
       corfu_south: { lat: 39.45,  lng: 20.05  },
       paxi:        { lat: 39.194, lng: 20.183 }
     };
 
-    // State
     let state = { q:'', region:'', category:'', page:1, total:0, items:[] };
-
-    // Map globals
     let map, infoWindow, markers = [], clusterer;
 
-    // Init
     restoreFromURL();
     bindUI();
     await maybeInitMap();
     await loadAndRender();
 
-    // --- Functions ---
     function bindUI(){
-      els.searchBtn.addEventListener('click', () => { state.page = 1; syncFromInputs(); loadAndRender(); });
-      els.q.addEventListener('keydown', e => { if (e.key === 'Enter') { state.page = 1; syncFromInputs(); loadAndRender(); }});
-      els.region.addEventListener('change', () => { state.page = 1; syncFromInputs(); loadAndRender(); });
-      els.category.addEventListener('change', () => { state.page = 1; syncFromInputs(); loadAndRender(); });
+      els.searchBtn.addEventListener('click', () => { state.page = 1; readInputs(); loadAndRender(); });
+      els.q.addEventListener('keydown', e => { if (e.key === 'Enter'){ state.page = 1; readInputs(); loadAndRender(); }});
+      els.region.addEventListener('change', () => { state.page = 1; readInputs(); loadAndRender(); });
+      els.category.addEventListener('change', () => { state.page = 1; readInputs(); loadAndRender(); });
       els.prev.addEventListener('click', () => { if (state.page > 1){ state.page--; loadAndRender(); }});
       els.next.addEventListener('click', () => {
         const maxPage = Math.max(1, Math.ceil(state.total / PAGE_SIZE));
@@ -180,7 +166,7 @@
       });
     }
 
-    function syncFromInputs(){
+    function readInputs(){
       state.q = els.q.value.trim();
       state.region = els.region.value;
       state.category = els.category.value;
@@ -210,16 +196,14 @@
     async function loadAndRender(){
       const offset = (state.page - 1) * PAGE_SIZE;
 
-      // Build query
-      let query = supabase
-        .from('listings')
+      let query = supabase.from('listings')
         .select('*', { count: 'exact' })
         .eq('published', true);
 
       if (state.region)   query = query.eq('region', state.region);
       if (state.category) query = query.eq('category', state.category);
       if (state.q) {
-        const term = '%' + state.q.replace(/%/g, '\\%').replace(/_/g, '\\_') + '%';
+        const term = '%' + state.q.replace(/%/g,'\\%').replace(/_/g,'\\_') + '%';
         query = query.or(`title.ilike.${term},description.ilike.${term},location.ilike.${term}`);
       }
 
@@ -265,7 +249,6 @@
         els.cards.appendChild(div);
       }
 
-      // Bind "Show on map"
       els.cards.querySelectorAll('button[data-zoom]').forEach(btn => {
         btn.addEventListener('click', () => {
           const id = btn.getAttribute('data-zoom');
@@ -301,15 +284,20 @@
       els.mapNote.style.display = 'none';
       els.map.style.display = 'block';
 
-      // Load Maps JS (modern loader)
-      await loadGoogleMaps(GOOGLE_MAPS_API_KEY);
+      try {
+        await loadGoogleMaps(GOOGLE_MAPS_API_KEY);
+      } catch (e) {
+        els.mapError.textContent = `Map failed to load (${e.message || e}). Check key restrictions.`;
+        els.mapError.style.display = 'block';
+        return;
+      }
 
       map = new google.maps.Map(els.map, {
         center: { lat: 39.326, lng: 20.17 }, // Ionian area center
         zoom: 9,
-        tilt: 45,                 // 3D tilt
+        tilt: 45,
         heading: 0,
-        mapId: GOOGLE_MAP_ID || undefined, // your vector map style if set
+        mapId: GOOGLE_MAP_ID || undefined,
         gestureHandling: 'greedy',
         mapTypeControl: false,
         streetViewControl: false,
@@ -325,7 +313,7 @@
     }
 
     function updateMap(items){
-      if (!map) return; // map disabled until key is added
+      if (!map) return;
       clearMarkers();
 
       const bounds = new google.maps.LatLngBounds();
@@ -334,11 +322,7 @@
         const pos = getLatLng(it);
         if (!pos) continue;
 
-        const marker = new google.maps.Marker({
-          position: pos,
-          map,
-          title: it.title || '',
-        });
+        const marker = new google.maps.Marker({ position: pos, map, title: it.title || '' });
 
         marker.addListener('click', () => {
           const html = `
@@ -356,12 +340,8 @@
         bounds.extend(pos);
       }
 
-      if (markers.length === 1){
-        map.setCenter(markers[0].getPosition());
-        map.setZoom(12);
-      } else if (markers.length > 1){
-        map.fitBounds(bounds, 40);
-      }
+      if (markers.length === 1){ map.setCenter(markers[0].getPosition()); map.setZoom(12); }
+      else if (markers.length > 1){ map.fitBounds(bounds, 40); }
 
       if (MarkerClusterer && markers.length > 1){
         clusterer = new MarkerClusterer({ markers, map });
@@ -374,7 +354,6 @@
       if (!pos) return;
       map.panTo(pos);
       map.setZoom(13);
-      // Open an infoWindow like marker click
       const html = `
         <div style="max-width:240px">
           ${item.image_url ? `<img src="${escapeAttr(item.image_url)}" alt="" style="width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:.5rem">` : ''}
@@ -388,37 +367,27 @@
     }
 
     function getLatLng(it){
-      if (typeof it.lat === 'number' && typeof it.lng === 'number'){
-        return { lat: it.lat, lng: it.lng };
-      }
-      // Fallback: region center if no coordinates yet
+      if (typeof it.lat === 'number' && typeof it.lng === 'number') return { lat: it.lat, lng: it.lng };
       if (it.region && REGION_CENTERS[it.region]) return REGION_CENTERS[it.region];
       return null;
     }
 
-    // --- Helpers ---
+    // Helpers
     function escapeHtml(s=''){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
     function escapeAttr(s=''){ return String(s).replace(/"/g,'&quot;'); }
     function safe(v){ return (v || '').toString().replace('_',' '); }
 
-    // Google Maps loader
+    // Load Google Maps
     async function loadGoogleMaps(key){
       if (window.google && window.google.maps) return;
       await new Promise((resolve, reject) => {
         const s = document.createElement('script');
         s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&libraries=marker&v=weekly`;
         s.async = true; s.defer = true;
-        s.onload = resolve; s.onerror = () => reject(new Error('Failed to load Google Maps JS'));
+        s.onload = resolve; s.onerror = () => reject(new Error('JS not loaded'));
         document.head.appendChild(s);
       });
     }
   </script>
-
-  <!-- Quick note for you:
-    • Put your Google Maps API key into GOOGLE_MAPS_API_KEY above.
-    • (Optional) Use a Vector Map ID (GOOGLE_MAP_ID) for a custom style + best 3D tilt.
-    • In Google Cloud, enable: Maps JavaScript API, Geocoding (optional for future), Places (optional).
-    • Billing must be enabled for 3D tiles/advanced features.
-  -->
 </body>
 </html>
