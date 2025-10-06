@@ -5,10 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Explore • Ionian Coast Explorer</title>
 
-  <!-- Fonts (same as index) -->
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300..800&display=swap" rel="stylesheet">
-
   <!-- Brand & site styles -->
   <link rel="stylesheet" href="/brand/brand.css">
   <link rel="stylesheet" href="/style.css">
@@ -19,105 +15,410 @@
   <link rel="manifest" href="/site.webmanifest">
   <meta name="theme-color" content="#154B74">
 
-  <!-- Supabase JS -->
-  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    .filters {
+      display: grid; gap: .75rem; grid-template-columns: 1fr 160px 160px 120px;
+      align-items: end; margin: 1rem 0;
+    }
+    @media (max-width: 900px){ .filters{ grid-template-columns: 1fr 1fr; } }
+    .map-and-list { display: grid; grid-template-columns: 1.2fr 1fr; gap: 1rem; }
+    @media (max-width: 1024px){ .map-and-list{ grid-template-columns: 1fr; } }
+    #map {
+      width: 100%; height: 520px; border-radius: 16px; border: 1px solid var(--line, #e6ecf2);
+      background: #eef5fb;
+    }
+    .grid-cards { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+    .card img { width: 100%; height: 160px; object-fit: cover; border-radius: 12px; }
+    .pill { display:inline-block; padding:.15rem .5rem; border:1px solid var(--line, #e6ecf2); border-radius:999px; font-size:.8rem; color:var(--muted,#5b6673); }
+    .pagination { display:flex; gap:.5rem; align-items:center; justify-content:center; margin:1rem 0; }
+    .btn-lite { border:1px solid var(--line,#e6ecf2); background:#fff; border-radius:10px; padding:.5rem .8rem; }
+    .muted { color: var(--muted, #5b6673); }
+    .small { font-size:.9rem; }
+  </style>
 </head>
 <body>
-  <!-- Header -->
   <header class="site-header">
     <a href="/" class="brand" aria-label="Ionian Coast Explorer">
       <img src="/assets/logo/ionian-logo-horizontal.svg" alt="Ionian Coast Explorer" class="logo logo--header">
       <strong>Ionian Coast Explorer</strong>
     </a>
     <nav class="main-nav" aria-label="Primary">
-      <a href="/explore.html">Explore</a>
-      <a href="/owners.html">For Owners</a>
+      <a href="/explore.html" aria-current="page">Explore</a>
+      <a href="/owners.html" class="btn btn-primary">For Owners</a>
     </nav>
   </header>
 
   <main>
-    <h2>Explore Listings</h2>
-    <p class="muted">Browse authentic accommodation, boating, cuisine, and coastal life.</p>
+    <h2>Explore the Ionian</h2>
+    <p class="muted">Search authentic stays, boating, cuisine & coastal life across Thesprotia, South Corfu & Paxi.</p>
 
-    <!-- Simple filters -->
-    <div class="cta" style="margin:1rem 0;">
-      <button class="btn btn-ghost" data-filter="">All</button>
-      <button class="btn btn-ghost" data-filter="accommodation">Accommodation</button>
-      <button class="btn btn-ghost" data-filter="boating">Boating</button>
-      <button class="btn btn-ghost" data-filter="cuisine">Cuisine</button>
-      <button class="btn btn-ghost" data-filter="coastal_life">Coastal Life</button>
-    </div>
+    <!-- Filters -->
+    <section class="card">
+      <div class="filters">
+        <div>
+          <label for="q">Search</label>
+          <input id="q" type="search" placeholder="Try: villa, boat, taverna, Gaios…" />
+        </div>
 
-    <!-- Cards go here -->
-    <div id="listings" class="grid" style="margin-top:1.25rem"></div>
-    <p id="empty" class="muted" style="display:none; margin-top:1rem;">No listings yet.</p>
+        <div>
+          <label for="region">Region</label>
+          <select id="region">
+            <option value="">All regions</option>
+            <option value="thesprotia">Thesprotia</option>
+            <option value="corfu_south">Corfu South</option>
+            <option value="paxi">Paxi</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="category">Category</label>
+          <select id="category">
+            <option value="">All categories</option>
+            <option value="accommodation">Accommodation</option>
+            <option value="boating">Boating</option>
+            <option value="cuisine">Cuisine</option>
+            <option value="coastal_life">Coastal Life</option>
+          </select>
+        </div>
+
+        <div>
+          <label>&nbsp;</label>
+          <button id="searchBtn" class="btn btn-primary" style="width:100%;">Search</button>
+        </div>
+      </div>
+      <p id="resultSummary" class="small muted" style="margin:.25rem 0 0 0;"></p>
+    </section>
+
+    <!-- Map + List -->
+    <section class="map-and-list">
+      <div>
+        <div id="map" role="img" aria-label="Map of Ionian listings"></div>
+        <p id="mapNote" class="small muted" style="margin-top:.5rem; display:none;">
+          To enable the 3D Google map, add your API key in <code>explore.html</code>. Instructions below.
+        </p>
+      </div>
+
+      <div>
+        <div id="cards" class="grid-cards"></div>
+        <div id="empty" class="card" style="display:none;">
+          <p class="muted">No results match your filters yet.</p>
+        </div>
+        <div class="pagination">
+          <button id="prev" class="btn-lite">◀ Prev</button>
+          <span id="pageInfo" class="small muted"></span>
+          <button id="next" class="btn-lite">Next ▶</button>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <script>
-    // >>> REPLACE these with your project values (same as owners.html) <<<
+  <!-- Supabase + Google Maps -->
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+    // OPTIONAL: marker clustering (loads only if Maps is available)
+    let MarkerClusterer;
+    try { MarkerClusterer = (await import('https://cdn.jsdelivr.net/npm/@googlemaps/markerclusterer@2.5.3/+esm')).MarkerClusterer; } catch(e){}
+
+    // === Replace with your values ===
     const SUPABASE_URL = 'https://tromqpxzlqazzzfqejer.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRyb21xcHh6bHFhenp6ZnFlamVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkzODc5MjIsImV4cCI6MjA3NDk2MzkyMn0.LSbRypXuCtR1bwOEy9C7vdg2etYNCFsyMBWk1cg8WQo';
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Add your Google Maps key to enable the map
+    const GOOGLE_MAPS_API_KEY = 'YOUR_GOOGLE_MAPS_API_KEY';
+    // Optional: a Vector Map ID you created in Google Cloud (enables custom style + best 3D tilt)
+    const GOOGLE_MAP_ID = ''; // e.g. 'abcd1234fghijk'
 
-    const listingsEl = document.getElementById('listings');
-    const emptyEl = document.getElementById('empty');
+    const PAGE_SIZE = 12;
 
-    async function loadListings(category = '') {
-      listingsEl.innerHTML = '';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // UI
+    const els = {
+      q: document.getElementById('q'),
+      region: document.getElementById('region'),
+      category: document.getElementById('category'),
+      searchBtn: document.getElementById('searchBtn'),
+      cards: document.getElementById('cards'),
+      empty: document.getElementById('empty'),
+      prev: document.getElementById('prev'),
+      next: document.getElementById('next'),
+      pageInfo: document.getElementById('pageInfo'),
+      resultSummary: document.getElementById('resultSummary'),
+      map: document.getElementById('map'),
+      mapNote: document.getElementById('mapNote')
+    };
+
+    // Region fallback centers (if a listing has no lat/lng yet)
+    const REGION_CENTERS = {
+      thesprotia: { lat: 39.503, lng: 20.265 },
+      corfu_south: { lat: 39.45,  lng: 20.05  },
+      paxi:        { lat: 39.194, lng: 20.183 }
+    };
+
+    // State
+    let state = { q:'', region:'', category:'', page:1, total:0, items:[] };
+
+    // Map globals
+    let map, infoWindow, markers = [], clusterer;
+
+    // Init
+    restoreFromURL();
+    bindUI();
+    await maybeInitMap();
+    await loadAndRender();
+
+    // --- Functions ---
+    function bindUI(){
+      els.searchBtn.addEventListener('click', () => { state.page = 1; syncFromInputs(); loadAndRender(); });
+      els.q.addEventListener('keydown', e => { if (e.key === 'Enter') { state.page = 1; syncFromInputs(); loadAndRender(); }});
+      els.region.addEventListener('change', () => { state.page = 1; syncFromInputs(); loadAndRender(); });
+      els.category.addEventListener('change', () => { state.page = 1; syncFromInputs(); loadAndRender(); });
+      els.prev.addEventListener('click', () => { if (state.page > 1){ state.page--; loadAndRender(); }});
+      els.next.addEventListener('click', () => {
+        const maxPage = Math.max(1, Math.ceil(state.total / PAGE_SIZE));
+        if (state.page < maxPage){ state.page++; loadAndRender(); }
+      });
+    }
+
+    function syncFromInputs(){
+      state.q = els.q.value.trim();
+      state.region = els.region.value;
+      state.category = els.category.value;
+      writeURL();
+    }
+
+    function writeURL(){
+      const url = new URL(location.href);
+      url.searchParams.set('page', String(state.page));
+      state.q ? url.searchParams.set('q', state.q) : url.searchParams.delete('q');
+      state.region ? url.searchParams.set('region', state.region) : url.searchParams.delete('region');
+      state.category ? url.searchParams.set('category', state.category) : url.searchParams.delete('category');
+      history.replaceState(null, '', url.toString());
+    }
+
+    function restoreFromURL(){
+      const p = new URLSearchParams(location.search);
+      state.q = p.get('q') || '';
+      state.region = p.get('region') || '';
+      state.category = p.get('category') || '';
+      state.page = Math.max(1, parseInt(p.get('page') || '1', 10));
+      els.q.value = state.q;
+      els.region.value = state.region;
+      els.category.value = state.category;
+    }
+
+    async function loadAndRender(){
+      const offset = (state.page - 1) * PAGE_SIZE;
+
+      // Build query
       let query = supabase
         .from('listings')
-        .select('*')
-        .eq('published', true)
+        .select('*', { count: 'exact' })
+        .eq('published', true);
+
+      if (state.region)   query = query.eq('region', state.region);
+      if (state.category) query = query.eq('category', state.category);
+      if (state.q) {
+        const term = '%' + state.q.replace(/%/g, '\\%').replace(/_/g, '\\_') + '%';
+        query = query.or(`title.ilike.${term},description.ilike.${term},location.ilike.${term}`);
+      }
+
+      const { data, count, error } = await query
         .order('created_at', { ascending: false })
-        .limit(40);
+        .range(offset, offset + PAGE_SIZE - 1);
 
-      if (category) query = query.eq('category', category);
-
-      const { data, error } = await query;
       if (error) {
-        listingsEl.innerHTML = '<div class="card">Error loading listings.</div>';
-        console.error(error);
+        els.cards.innerHTML = `<div class="card">Error loading: ${escapeHtml(error.message)}</div>`;
+        els.empty.style.display = 'none';
+        els.pageInfo.textContent = '';
         return;
       }
 
-      if (!data || data.length === 0) {
-        emptyEl.style.display = 'block';
-        return;
-      }
-      emptyEl.style.display = 'none';
+      state.items = data || [];
+      state.total = count || 0;
 
-      for (const item of data) {
-        const card = document.createElement('a');
-        card.className = 'card';
-        card.href = `/listing.html?id=${item.id}`;
-        card.style.textDecoration = 'none';
-        card.style.color = 'inherit';
+      renderCards();
+      renderPagination();
+      renderSummary();
+      updateMap(state.items);
+    }
 
-        card.innerHTML = `
-          ${item.image_url ? `<img src="${item.image_url}" alt="" style="width:100%;height:180px;object-fit:cover;border-radius:12px;margin-bottom:.75rem">` : ''}
-          <h3>${item.title}</h3>
-          <p class="small" style="margin:.25rem 0 .5rem 0">
-            ${item.category?.replace('_',' ') || ''} · ${item.region?.replace('_',' ') || ''}${item.price_from ? ` · from €${Number(item.price_from).toFixed(0)}` : ''}
+    function renderCards(){
+      els.cards.innerHTML = '';
+      els.empty.style.display = (state.items.length === 0) ? 'block' : 'none';
+
+      for (const item of state.items){
+        const div = document.createElement('article');
+        div.className = 'card';
+        div.innerHTML = `
+          ${item.image_url ? `<img src="${escapeAttr(item.image_url)}" alt="">` : ''}
+          <h3 style="margin:.5rem 0 .25rem;">${escapeHtml(item.title || '')}</h3>
+          <p class="small muted" style="margin:0 0 .5rem 0;">
+            ${safe(item.category)} · ${safe(item.region)}${item.price_from ? ` · €${Number(item.price_from).toFixed(0)}+` : ''}
           </p>
-          <p>${(item.description || '').slice(0,140)}${(item.description && item.description.length > 140) ? '…' : ''}</p>
+          ${item.location ? `<span class="pill">${escapeHtml(item.location)}</span>` : ''}
+          <div style="margin-top:.75rem; display:flex; gap:.5rem; flex-wrap:wrap;">
+            <a class="btn btn-primary" href="/listing.html?id=${item.id}">View details</a>
+            <button class="btn btn-ghost" data-zoom="${item.id}">Show on map</button>
+          </div>
         `;
-        listingsEl.appendChild(card);
+        els.cards.appendChild(div);
+      }
+
+      // Bind "Show on map"
+      els.cards.querySelectorAll('button[data-zoom]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-zoom');
+          const item = state.items.find(x => String(x.id) === String(id));
+          if (item) focusOnListing(item);
+        });
+      });
+    }
+
+    function renderPagination(){
+      const from = (state.total === 0) ? 0 : ((state.page - 1) * PAGE_SIZE + 1);
+      const to = Math.min(state.total, state.page * PAGE_SIZE);
+      els.pageInfo.textContent = (state.total === 0) ? 'No results' : `${from}–${to} of ${state.total}`;
+      els.prev.disabled = (state.page <= 1);
+      els.next.disabled = (state.page * PAGE_SIZE >= state.total);
+    }
+
+    function renderSummary(){
+      const parts = [];
+      if (state.q) parts.push(`“${escapeHtml(state.q)}”`);
+      if (state.region) parts.push(safe(state.region));
+      if (state.category) parts.push(safe(state.category));
+      els.resultSummary.textContent = parts.length ? `Filtering by ${parts.join(' · ')}` : '';
+    }
+
+    // ---- MAP ----
+    async function maybeInitMap(){
+      if (!GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY.startsWith('YOUR_')) {
+        els.mapNote.style.display = 'block';
+        els.map.style.display = 'none';
+        return;
+      }
+      els.mapNote.style.display = 'none';
+      els.map.style.display = 'block';
+
+      // Load Maps JS (modern loader)
+      await loadGoogleMaps(GOOGLE_MAPS_API_KEY);
+
+      map = new google.maps.Map(els.map, {
+        center: { lat: 39.326, lng: 20.17 }, // Ionian area center
+        zoom: 9,
+        tilt: 45,                 // 3D tilt
+        heading: 0,
+        mapId: GOOGLE_MAP_ID || undefined, // your vector map style if set
+        gestureHandling: 'greedy',
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: true,
+      });
+      infoWindow = new google.maps.InfoWindow();
+    }
+
+    function clearMarkers(){
+      if (clusterer) { clusterer.clearMarkers(); clusterer = null; }
+      for (const m of markers) m.setMap(null);
+      markers = [];
+    }
+
+    function updateMap(items){
+      if (!map) return; // map disabled until key is added
+      clearMarkers();
+
+      const bounds = new google.maps.LatLngBounds();
+
+      for (const it of items){
+        const pos = getLatLng(it);
+        if (!pos) continue;
+
+        const marker = new google.maps.Marker({
+          position: pos,
+          map,
+          title: it.title || '',
+        });
+
+        marker.addListener('click', () => {
+          const html = `
+            <div style="max-width:240px">
+              ${it.image_url ? `<img src="${escapeAttr(it.image_url)}" alt="" style="width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:.5rem">` : ''}
+              <div style="font-weight:600;margin-bottom:.25rem">${escapeHtml(it.title || '')}</div>
+              <div class="small muted" style="margin-bottom:.5rem">${safe(it.category)} · ${safe(it.region)}</div>
+              <a class="btn btn-primary" href="/listing.html?id=${it.id}">View</a>
+            </div>`;
+          infoWindow.setContent(html);
+          infoWindow.open({ anchor: marker, map });
+        });
+
+        markers.push(marker);
+        bounds.extend(pos);
+      }
+
+      if (markers.length === 1){
+        map.setCenter(markers[0].getPosition());
+        map.setZoom(12);
+      } else if (markers.length > 1){
+        map.fitBounds(bounds, 40);
+      }
+
+      if (MarkerClusterer && markers.length > 1){
+        clusterer = new MarkerClusterer({ markers, map });
       }
     }
 
-    // Filter buttons & deep-link via hash (e.g., /explore.html#boating)
-    document.querySelectorAll('[data-filter]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const val = btn.getAttribute('data-filter');
-        loadListings(val);
-        if (val) location.hash = val; else history.pushState("", document.title, window.location.pathname);
-      });
-    });
+    function focusOnListing(item){
+      if (!map) return;
+      const pos = getLatLng(item);
+      if (!pos) return;
+      map.panTo(pos);
+      map.setZoom(13);
+      // Open an infoWindow like marker click
+      const html = `
+        <div style="max-width:240px">
+          ${item.image_url ? `<img src="${escapeAttr(item.image_url)}" alt="" style="width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:.5rem">` : ''}
+          <div style="font-weight:600;margin-bottom:.25rem">${escapeHtml(item.title || '')}</div>
+          <div class="small muted" style="margin-bottom:.5rem">${safe(item.category)} · ${safe(item.region)}</div>
+          <a class="btn btn-primary" href="/listing.html?id=${item.id}">View</a>
+        </div>`;
+      infoWindow.setContent(html);
+      infoWindow.setPosition(pos);
+      infoWindow.open({ map });
+    }
 
-    // Initial load (use URL hash if present)
-    const initial = location.hash ? location.hash.slice(1) : '';
-    loadListings(initial);
+    function getLatLng(it){
+      if (typeof it.lat === 'number' && typeof it.lng === 'number'){
+        return { lat: it.lat, lng: it.lng };
+      }
+      // Fallback: region center if no coordinates yet
+      if (it.region && REGION_CENTERS[it.region]) return REGION_CENTERS[it.region];
+      return null;
+    }
+
+    // --- Helpers ---
+    function escapeHtml(s=''){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function escapeAttr(s=''){ return String(s).replace(/"/g,'&quot;'); }
+    function safe(v){ return (v || '').toString().replace('_',' '); }
+
+    // Google Maps loader
+    async function loadGoogleMaps(key){
+      if (window.google && window.google.maps) return;
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&libraries=marker&v=weekly`;
+        s.async = true; s.defer = true;
+        s.onload = resolve; s.onerror = () => reject(new Error('Failed to load Google Maps JS'));
+        document.head.appendChild(s);
+      });
+    }
   </script>
+
+  <!-- Quick note for you:
+    • Put your Google Maps API key into GOOGLE_MAPS_API_KEY above.
+    • (Optional) Use a Vector Map ID (GOOGLE_MAP_ID) for a custom style + best 3D tilt.
+    • In Google Cloud, enable: Maps JavaScript API, Geocoding (optional for future), Places (optional).
+    • Billing must be enabled for 3D tiles/advanced features.
+  -->
 </body>
 </html>
